@@ -3,6 +3,13 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[command(version, about=format!("IC Memory Link V{}", env!("CARGO_PKG_VERSION")), long_about = None)]
 pub enum MemLinkArgs {
+    /// Print out information on the existing virtual memories
+    Info {
+        /// snapshot
+        #[arg(long, short)]
+        stable_memory: String,
+    },
+    /// Extract virtual memory from an existing stable memory snapshot
     Extract {
         /// snapshot
         #[arg(long, short)]
@@ -16,6 +23,7 @@ pub enum MemLinkArgs {
         #[arg(long, short)]
         output: String,
     },
+    /// Patch stable memory snapshot
     Patch {
         /// snapshot
         #[arg(long, short)]
@@ -29,31 +37,26 @@ pub enum MemLinkArgs {
         #[arg(long, short)]
         input: String,
     },
-    /*
-    /// Upload file to
-    Upload {
-        /// File to upload
-        #[arg(long)]
-        file: String,
+    /// Download canister memory into a local file
+    Download {
+        /// Output file where to store the downloaded data
+        output: String,
 
         /// Canister name
-        #[arg(long)]
+        #[arg(long, short)]
         canister: String,
 
         /// Canister method to use for upload
-        #[arg(long)]
+        #[arg(long, short)]
         method: String,
 
         /// Network type (optional)
-        #[arg(long)]
+        #[arg(long, short)]
         network: Option<String>,
-
-        /// Start address
-        #[arg(short, long, default_value = "0")]
-        start_offset: u64,
     },
-    /// Download canister memory into a local file
-    Download {
+    /*
+    /// Upload file to
+    Upload {
         /// File to upload
         #[arg(long)]
         file: String,

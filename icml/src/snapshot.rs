@@ -1,32 +1,48 @@
-use std::fs::OpenOptions;
-use std::io::Read;
-use std::io::Write;
-
-use crate::arguments::MemLinkArgs;
-use clap::Parser;
-
 use ic_stable_structures::FileMemory;
 use ic_stable_structures::Memory;
 use ic_stable_structures::memory_manager::MemoryId;
 use ic_stable_structures::memory_manager::MemoryManager;
-
-mod arguments;
-mod downloader;
+use std::fs::OpenOptions;
+use std::io::Read;
+use std::io::Write;
 
 const PAGE_SIZE: usize = 65536;
 
-pub fn get_file_memory(filename: &str) -> std::io::Result<FileMemory> {
-    let file = OpenOptions::new()
+pub fn print_information(stable_memory_path: &str) -> Result<(), anyhow::Error> {
+    let stable_memory_file = OpenOptions::new()
         .read(true)
         .write(false)
         .create(false)
-        .open(filename)?;
+        .open(stable_memory_path)?;
 
-    Ok(FileMemory::new(file))
+    let memory = FileMemory::new(stable_memory_file);
+
+    let manager = MemoryManager::init(memory);
+
+    for i in 0..255u8 {
+        let vmemory = manager.get(MemoryId::new(i));
+        if vmemory.size() < 1 {
+            continue;
+        }
+        println!("Memory{i:03}.size = {}", vmemory.size());
+    }
+
+    Ok(())
 }
 
-fn extract_memory(stable_memory: &str, memory_id: u8, output: &str) -> Result<(), anyhow::Error> {
-    let memory = get_file_memory(stable_memory)?;
+pub fn extract_memory(
+    stable_memory_path: &str,
+    memory_id: u8,
+    output: &str,
+) -> Result<(), anyhow::Error> {
+    println!("Writing into file... {output}");
+    let stable_memory_file = OpenOptions::new()
+        .read(true)
+        .write(false)
+        .create(false)
+        .open(stable_memory_path)?;
+
+    let memory = FileMemory::new(stable_memory_file);
 
     let manager = MemoryManager::init(memory);
 
@@ -43,17 +59,22 @@ fn extract_memory(stable_memory: &str, memory_id: u8, output: &str) -> Result<()
 
     // copy memory info file
     for i in 0..vmemory.size() {
+        println!("Writing page{i}");
         vmemory.read(i * PAGE_SIZE as u64, &mut buf);
 
         output_file.write_all(&buf)?;
     }
 
+    let _ = output_file.flush();
+
     Ok(())
 }
 
 pub fn patch_memory(stable_memory: &str, memory_id: u8, input: &str) -> Result<(), anyhow::Error> {
+    println!("Patching stable memory... {stable_memory} virtual memory {memory_id}");
+
     let file = OpenOptions::new()
-        .read(false)
+        .read(true)
         .write(true)
         .create(false)
         .open(stable_memory)?;
@@ -70,41 +91,21 @@ pub fn patch_memory(stable_memory: &str, memory_id: u8, input: &str) -> Result<(
 
     loop {
         let n = input_file.read(&mut buf)?;
+
         if n == 0 {
+            println!("Finished processing input file");
             break;
         }
 
-        if offset + n as u64 >= vmemory.size() * PAGE_SIZE as u64 {
+        if offset + n as u64 > vmemory.size() * PAGE_SIZE as u64 {
             // grow memory by one page
             vmemory.grow(1);
         }
 
+        println!("Writing {n} bytes at address {offset}");
+
         vmemory.write(offset, &buf[..n]);
         offset += n as u64;
-    }
-
-    Ok(())
-}
-
-fn main() -> Result<(), anyhow::Error> {
-    let args = MemLinkArgs::parse();
-
-    match args {
-        MemLinkArgs::Extract {
-            output,
-            memory_id,
-            stable_memory,
-        } => {
-            extract_memory(&stable_memory, memory_id, &output)?;
-        }
-
-        MemLinkArgs::Patch {
-            input,
-            memory_id,
-            stable_memory,
-        } => {
-            patch_memory(&stable_memory, memory_id, &input)?;
-        }
     }
 
     Ok(())

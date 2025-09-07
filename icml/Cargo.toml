@@ -1,0 +1,16 @@
+[package]
+name = "icml"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+repository = "http://github.com/wasm-forge/ic-memory-link"
+homepage = "http://github.com/wasm-forge/ic-memory-link"
+readme = "README.md"
+keywords = ["icp", "internet-computer", "database"]
+
+[dependencies]
+anyhow.workspace= true
+clap.workspace = true
+tempfile.workspace = true
+ic-stable-structures.workspace = true
+

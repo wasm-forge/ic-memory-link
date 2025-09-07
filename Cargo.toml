@@ -1,14 +1,11 @@
-[package]
-name = "ic-memory-link"
-version = "0.1.0"
-edition = "2024"
-license = "MIT"
-repository = "http://github.com/wasm-forge/ic-memory-link"
-homepage = "http://github.com/wasm-forge/ic-memory-link"
-readme = "README.md"
-keywords = ["icp", "internet-computer", "database"]
+[workspace]
+members = [ "ic-memory-link",
+    "icml",
+]
+resolver = "2"
 
-[dependencies]
+
+[workspace.dependencies]
 anyhow = "1.0.99"
 clap = { version = "4.5.47", features = ["derive"] }
 tempfile = "3.21.0"

@@ -1,12 +1,15 @@
 # icml
-`icml` (Internet Computer Memory Link) is a command-line utility to download and upload canister memory as a way to backup and restore SQLite database.
+`icml` (Internet Computer Memory Link) is a command-line utility to download and upload canister's memory as a way to backup an SQLite database to your local drive and upload it later.
 
 
 ## Installation
 
+Install the tool from command line:
 ```bash
 cargo install icml
 ```
+
+**Note:** [`dfx`](https://internetcomputer.org/docs/building-apps/getting-started/install) needs to be installed for the tool to work.
 
 
 ## Download database
@@ -38,12 +41,10 @@ This function will be called multiple times with the increasing offset until a c
 
 Download your canister snapshot with commands `dfx canister snapshot download`.
 
-Once you have access to the downloaded memory file `stable_memory.bin`, you can extract one of the virtual memories into a local file.
-
-In this example you have an SQLite database stored inside a virtual memory `120`:
+Once you have access to the downloaded memory file `stable_memory.bin`, you can list all the virtual memories with a non-zero length.
 
 ```bash
-icml extract -s stable_memory.bin -m 120 my_base.sqlite
+icml info -s stable_memory.bin 
 ```
 
 
@@ -67,3 +68,4 @@ In a similar fashion you can patch existing stable memory snapshot.
 icml patch -s stable_memory.bin -m 120 -i my_base.sqlite
 ```
 
+**Note:** currently patching only affects the stable memory file and will not change `.json` in case the stable memory file size has changed.

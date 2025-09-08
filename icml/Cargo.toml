@@ -6,6 +6,8 @@ license = "MIT"
 repository = "http://github.com/wasm-forge/ic-memory-link"
 homepage = "http://github.com/wasm-forge/ic-memory-link"
 readme = "README.md"
+description = "`icml` (Internet Computer Memory Link) is a command-line utility to download and upload canister's memory as a way to backup an SQLite database to your local drive and upload it later."
+
 keywords = ["icp", "internet-computer", "database"]
 
 [dependencies]

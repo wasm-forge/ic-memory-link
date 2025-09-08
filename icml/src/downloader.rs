@@ -1,58 +1,62 @@
 use std::{
     fs::OpenOptions,
     io::{Seek, SeekFrom, Write},
-    process::Command,
 };
 
-pub fn dfx_call(
-    network: &Option<String>,
-    canister: &str,
-    method: &str,
-    args: &Vec<String>,
-) -> Result<std::process::Output, String> {
-    let mut command = Command::new("dfx");
-
-    command.arg("canister");
-    command.arg("call");
-
-    command.arg(canister);
-    command.arg(method);
-
-    if let Some(net) = network {
-        command.arg("--network");
-        command.arg(net);
-    }
-
-    for arg in args {
-        command.arg(arg);
-    }
-
-    command.output().map_err(|e| e.to_string())
-}
+use crate::common::dfx_call;
 
 pub fn blob_to_vec_u8(ret: &str) -> Vec<u8> {
-    // Example input: (blob "\01\02\03")
-    if let Some(start) = ret.find('"')
+    let s = ret.trim();
+
+    // --- Case 1: blob string ---
+    if s.starts_with('(')
+        && s.contains("blob")
+        && let Some(start) = ret.find('"')
         && let Some(end) = ret.rfind('"')
     {
-        let content = &ret[start + 1..end];
+        let content = &s[start + 1..end];
         let mut bytes = Vec::new();
         let mut i = 0;
         while i < content.len() {
             if &content[i..i + 1] == "\\" {
-                let hex = &content[i + 1..i + 3];
-                if let Ok(val) = u8::from_str_radix(hex, 16) {
-                    bytes.push(val);
+                // Expect two hex digits after "\"
+                if i + 3 <= content.len() {
+                    let hex = &content[i + 1..i + 3];
+                    if let Ok(val) = u8::from_str_radix(hex, 16) {
+                        bytes.push(val);
+                    }
                 }
                 i += 3;
             } else {
-                // Direct characters (rare case)
+                // Direct ASCII char
                 bytes.push(content.as_bytes()[i]);
                 i += 1;
             }
         }
         return bytes;
     }
+
+    // --- Case 2: vec { ... } ---
+    if s.starts_with('(')
+        && s.contains("vec")
+        && let Some(start) = s.find('{')
+        && let Some(end) = s.rfind('}')
+    {
+        let inside = &s[start + 1..end];
+        let mut bytes = Vec::new();
+        for token in inside.split(';') {
+            let t = token.trim();
+
+            if !t.is_empty()
+                && let Ok(val) = t.parse::<u8>()
+            {
+                bytes.push(val);
+            }
+        }
+        return bytes;
+    }
+
+    // fallback: unsupported format
     Vec::new()
 }
 

@@ -11,3 +11,4 @@ clap = { version = "4.5.47", features = ["derive"] }
 tempfile = "3.21.0"
 ic-stable-structures = "0.7.0"
 
+

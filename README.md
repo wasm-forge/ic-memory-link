@@ -9,25 +9,45 @@ cargo install icml
 ```
 
 
-# Download database
+## Download database
 
 ```bash
-icml download -o my_base.sqlite <CANISTER-NAME> <DOWNLOAD-FUNCTION>
+icml download <CANISTER> <METHOD> <OUTPUT_FILE>
 ```
 
-Expected download function signature: `(address: nat64, length: nat64) -> blob`
+Expected Canister's download function signature: `(offset: nat64) -> blob`
+
+This function will be called multiple times with the increasing offset until an empty blob is returned.
 
 
-# Upload database
+## Upload Database
 
-This function is currently not implemented, use `ic-file-uploader`.
+You can use `icml` to upload your local file into a canister
+```bash
+icml upload <CANISTER> <METHOD> <INPUT-FILE>
+```
+
+Expected Canister's upload function signature: `(offset: nat64, data: blob) -> ()`
+
+This function will be called multiple times with the increasing offset until a complete file is uploaded.
 
 
-# Working with snapshot memory directly
+## Working with the snapshot memory directly
+
+### Info
+
+Download your canister snapshot with commands `dfx canister snapshot download`.
+
+Once you have access to the downloaded memory file `stable_memory.bin`, you can extract one of the virtual memories into a local file.
+
+In this example you have an SQLite database stored inside a virtual memory `120`:
+
+```bash
+icml extract -s stable_memory.bin -m 120 my_base.sqlite
+```
 
 
-
-## Extract memory from a snapshot
+### Extract memory from a snapshot
 
 Download your canister snapshot with commands `dfx canister snapshot download`.
 
@@ -39,7 +59,7 @@ In this example you have an SQLite database stored inside a virtual memory `120`
 icml extract -s stable_memory.bin -m 120 -o my_base.sqlite
 ```
 
-## Patch memory of a stable memory snapshot
+### Patch memory of a stable memory snapshot
 
 In a similar fashion you can patch existing stable memory snapshot. 
 

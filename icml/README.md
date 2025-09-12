@@ -24,7 +24,6 @@ This function will be called multiple times with the increasing offset until an 
 
 Basic implementation example:
 ```Rust
-
 // Basic implementation for downloading the database using the icml tool
 // The real implementation should keep canister in "service" mode to prevent database updates during download,
 // also make sure only the owner of the canister can call this method
@@ -77,7 +76,6 @@ This function will be called multiple times with the increasing offset until a c
 
 Basic implementation example:
 ```Rust
-
 // Basic implementation to upload the database using the icml tool
 // The real implementation should keep canister in "service" mode to prevent database updates during upload
 // also make sure only the owner of the canister can call this method
@@ -89,7 +87,7 @@ fn db_upload(offset: u64, content: Vec<u8>) {
     if let Ok(mut file) = OpenOptions::new()
         .write(true)
         .create(true)
-        .truncate(true) // create file if it doesn't exist
+        .truncate(true)
         .open(DB_FILENAME)
     {
         if file.seek(SeekFrom::Start(offset)).is_ok() {
